@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kaufland Catalog & Price History</title>
+    <!-- Local copies of libraries -->
+    <script src="lib/react.production.min.js"></script>
+    <script src="lib/react-dom.production.min.js"></script>
+    <link rel="stylesheet" href="lib/tailwind.min.css">
+    <style>
+        .price-drop {
+            color: #16a34a;
+            font-weight: bold;
+        }
+
+        .price-up {
+            color: #dc2626;
+        }
+
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            background: white;
+            z-index: 10;
+        }
+
+        /* Add some simple transitions for the table */
+        tr {
+            transition: background-color 0.2s;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+    <div id="root"></div>
+    <!-- Script moved to external file -->
+    <script src="app.js"></script>
+</body>
+
+</html>

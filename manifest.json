@@ -1,0 +1,20 @@
+{
+    "manifest_version": 3,
+    "name": "Kaufland & Lidl Tracker",
+    "version": "1.1",
+    "description": "Следене на цени от Kaufland и Lidl.",
+    "permissions": [
+        "storage",
+        "activeTab"
+    ],
+    "host_permissions": [
+        "https://www.kaufland.bg/",
+        "https://www.lidl.bg/"
+    ],
+    "action": {
+        "default_title": "Catalog Tracker"
+    },
+    "background": {
+        "service_worker": "background.js"
+    }
+}
