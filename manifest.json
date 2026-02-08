@@ -11,6 +11,11 @@
         "https://www.kaufland.bg/",
         "https://www.lidl.bg/"
     ],
+    "icons": {
+        "16": "icons/shopping-16.png",
+        "48": "icons/shopping-48.png",
+        "128": "icons/shopping-100.png"
+    },
     "action": {
         "default_title": "Catalog Tracker"
     },

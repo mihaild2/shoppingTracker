@@ -3,7 +3,7 @@ const { useState, useEffect, useMemo } = React;
 const App = () => {
     const [products, setProducts] = useState([]);
     const [history, setHistory] = useState({});
-    const [regexList, setRegexList] = useState(["ябълки", "круши", "портокали", "грейпфрут", "моркови", "лимони", "авокадо", "патладжан", "тиквички", "чушки", "гъби", "целина", "бадеми", "кашу", "тахан", "шам фъстък", "пиле", "овесени ядки", "тофу", "извара", "верея", "palmolive.+сапун", "medix.+сапун"]);
+    const [regexList, setRegexList] = useState(["ябълки", "круши", "портокали", "грейпфрут", "моркови", "лимони", "манго", "ананас", "родна стряха.+орис", "авокадо", "патладжан", "тиквички", "чушки", "гъби", "целина", "бадеми", "кашу", "тахан", "шам фъстък", "градус.+пиле", "овесени ядки", "тофу", "извара", "верея", "palmolive.+сапун", "medix.+сапун"]);
     const [newRegex, setNewRegex] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [status, setStatus] = useState('Готовност');
@@ -79,10 +79,12 @@ const App = () => {
                                         price: parseFloat(offer.price) || 0,
                                         formattedPrice: offer.price ? `${offer.price} €` : offer.loyaltyFormattedPrice || null,
                                         formattedOldPrice: offer.oldPrice ? `${offer.price} €` : offer.loyaltyFormattedOldPrice || null,
-                                        discount: offer.discount || 0,
+                                        period: `${offer.dateFrom} - ${offer.dateTo}`,
+                                        discount: offer.discount ? `-${offer.discount}%` : null,
                                         image: offer.listImage || offer.detailImage,
                                         basePrice: offer.formattedBasePrice,
-                                        isWatched: true
+                                        isWatched: true,
+                                        url: offer.klNr ? `https://www.kaufland.bg/aktualni-predlozheniya/oferti.html?kloffer-articleID=${offer.klNr}` : null
                                     };
                                 })
                                 .filter(Boolean);
@@ -145,10 +147,12 @@ const App = () => {
                                 unit: d.price?.packaging?.text || "",
                                 price: d.price?.price || d.lidlPlus?.[0]?.price?.price || 0,
                                 formattedPrice: `${d.price?.price || d.lidlPlus?.[0]?.price?.price || 0} €`,
-                                discount: d.price?.discount || null,
                                 formattedOldPrice: d.price?.oldPrice ? `${d.price.oldPrice} €` : null,
+                                discount: d.price?.discount?.discountText || null,
+                                period: d.stockAvailability?.badgeInfo?.badges[0].text || null,
                                 image: d.image,
-                                isWatched: true
+                                isWatched: true,
+                                url: d.canonicalPath ? `https://www.lidl.bg${d.canonicalPath}` : null
                             };
                         })
                         .filter(Boolean); // Remove nulls (non-matches)
@@ -287,18 +291,29 @@ const App = () => {
                             })
                         ),
 
-                        // 2. Combined Product & Price Cell
+                        // 2. Updated Component Rendering
                         React.createElement('td', { className: 'p-4' },
                             React.createElement('div', { className: 'flex gap-4 items-center' },
-                                React.createElement('img', { src: p.image, className: 'w-36 h-36 object-contain', loading: 'lazy' }),
-                                React.createElement('div', { className: 'flex flex-col gap-1' }, // Added flex-col for vertical stacking
-                                    React.createElement('div', { className: 'font-bold text-sm line-clamp-1' }, p.title + " - " + p.description),
+                                // Wrap the image in a conditional anchor tag
+                                p.url ?
+                                    React.createElement('a', { href: p.url, target: '_blank', rel: 'noopener noreferrer' },
+                                        React.createElement('img', { src: p.image, className: 'w-36 h-36 object-contain cursor-pointer', loading: 'lazy' })
+                                    ) :
+                                    React.createElement('img', { src: p.image, className: 'w-36 h-36 object-contain', loading: 'lazy' }),
+                                React.createElement('div', { className: 'flex flex-col gap-1' },
+                                    React.createElement('div', { className: 'font-bold text-sm line-clamp-1' }, `${p.title} - ${p.description}`),
                                     React.createElement('div', { className: 'text-[10px] text-gray-400' }, p.unit),
 
-                                    // Price moved here
-                                    React.createElement('div', { className: 'mt-1' },
-                                        React.createElement('span', { className: 'font-black text-lg mr-2' }, p.formattedPrice),
-                                        p.formattedOldPrice && React.createElement('span', { className: 'text-xs text-gray-400 line-through' }, p.formattedOldPrice)
+                                    React.createElement('div', { className: 'mt-1 flex items-baseline gap-1' },
+                                        React.createElement('span', { className: 'font-black text-lg' }, p.formattedPrice),
+                                        p.formattedOldPrice && React.createElement('span', { className: 'text-xs text-gray-400 line-through' }, p.formattedOldPrice),
+                                        p.discount && React.createElement('span', { className: 'ml-1 text-xs font-bold text-green-600' }, p.discount)
+                                    ),
+
+                                    // Correctly handling the badge and the original string
+                                    p.period && React.createElement('div', { className: 'text-xs text-gray-400 flex items-center' },
+                                        getDaysTag(p.period),
+                                        React.createElement('span', null, p.period)
                                     )
                                 )
                             )
@@ -308,6 +323,7 @@ const App = () => {
                         React.createElement('td', { className: 'p-4 w-40' },
                             React.createElement('div', { className: 'space-y-1' },
                                 (history[p.id] || []).slice().reverse().slice(0, 2).map((h, idx) => React.createElement('div', { key: idx, className: 'flex justify-between text-[10px]' },
+                                    // text-xs font-bold text-green-600
                                     React.createElement('span', { className: 'text-gray-400' }, h.date),
                                     React.createElement('span', { className: 'font-bold' }, `${h.price.toFixed(2)} €`)
                                 ))
@@ -318,6 +334,47 @@ const App = () => {
             )
         )
     );
+};
+
+// 1. Updated getDaysTag Helper
+const getDaysTag = (period) => {
+    if (!period) return null;
+
+    const match = period.match(/(\d{4}-\d{2}-\d{2})|(\d{2}\.\d{2}\.)/);
+    if (!match) return null;
+
+    const dateStr = match[0];
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
+    let targetDate;
+    if (dateStr.includes('-')) {
+        targetDate = new Date(dateStr);
+    } else {
+        const [day, month] = dateStr.split('.');
+        targetDate = new Date(now.getFullYear(), parseInt(month) - 1, parseInt(day));
+    }
+    targetDate.setHours(0, 0, 0, 0);
+
+    const diffDays = Math.round((targetDate - now) / (1000 * 60 * 60 * 24));
+
+    let colorClass = 'text-gray-400';
+    let label = '';
+
+    if (diffDays < 0) {
+        const daysSince = Math.abs(diffDays);
+        label = `преди ${daysSince} дни`;
+        colorClass = daysSince < 3 ? 'text-green-600' : 'text-green-500';
+    } else if (diffDays === 0) {
+        label = 'Днес';
+        colorClass = 'text-green-600';
+    } else {
+        label = `след ${diffDays} дни`;
+        if (diffDays < 3) colorClass = 'text-yellow-500';
+    }
+
+    // Return the React element directly, or the data needed to build it
+    return React.createElement('span', { className: `font-bold mr-1 ${colorClass}` }, label);
 };
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
